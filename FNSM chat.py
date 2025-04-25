@@ -9,6 +9,20 @@ from langchain.llms import OpenAI
 from langchain.chains.question_answering import load_qa_chain
 import platform
 
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-image: url("https://pbs.twimg.com/media/F2sr38KWYAAj0bc.jpg:large");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # App title and presentation
 st.title('Generación Aumentada por Recuperación (RAG) 💬')
 st.write("Versión de Python:", platform.python_version())
@@ -22,7 +36,7 @@ except Exception as e:
 
 # Sidebar information
 with st.sidebar:
-    st.subheader("Este Agente te ayudará a realizar análisis sobre el PDF cargado")
+    st.subheader("Los Spider-man somos personas ocupadas y no podemos leer documentos taaaaan largos, a veces necitamos ayudita analizando las cosas.")
 
 # Get API key from user
 ke = st.text_input('Ingresa tu Clave de OpenAI', type="password")
