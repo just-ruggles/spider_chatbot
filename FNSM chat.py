@@ -1,4 +1,5 @@
 import os
+import platform
 import streamlit as st
 from PIL import Image
 from PyPDF2 import PdfReader
@@ -7,59 +8,98 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.llms import OpenAI
 from langchain.chains.question_answering import load_qa_chain
-import platform
 
-st.markdown(
-    """
+# 🌈 Estilos personalizados
+st.markdown("""
     <style>
     .stApp {
         background-image: url("https://pbs.twimg.com/media/F2sr38KWYAAj0bc.jpg:large");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
+        color: white;
+    }
+
+    h1 {
+        font-size: 48px !important;
+        color: #FF4B4B;
+        font-weight: bold;
+        text-shadow: 2px 2px 8px #000;
+    }
+
+    .stTextInput > div > div > input {
+        background-color: #222 !important;
+        color: white !important;
+        border-radius: 8px;
+        border: 1px solid #666;
+    }
+
+    .stTextArea > div > textarea {
+        background-color: #222 !important;
+        color: white !important;
+        border-radius: 8px;
+        border: 1px solid #666;
+    }
+
+    .stButton > button {
+        background-color: #FF4B4B;
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-size: 16px;
+    }
+
+    .stSidebar {
+        background-color: rgba(0, 0, 0, 0.6) !important;
+        color: white !important;
+    }
+
+    .css-1v0mbdj p {
+        color: white;
     }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
-# App title and presentation
-st.title('Generación Aumentada por Recuperación (RAG) 💬')
-st.write("Versión de Python:", platform.python_version())
+# 🏷️ Título principal
+st.title('🕸️ Generación Aumentada por Recuperación (RAG) 💬')
+st.write(f"🔍 Versión de Python: {platform.python_version()}")
 
-# Load and display image
+# 🖼️ Cargar imagen
 try:
     image = Image.open('Chat_pdf.png')
     st.image(image, width=350)
 except Exception as e:
-    st.warning(f"No se pudo cargar la imagen: {e}")
+    st.warning(f"⚠️ No se pudo cargar la imagen: {e}")
 
-# Sidebar information
+# 📌 Sidebar
 with st.sidebar:
-    st.subheader("Los Spider-man somos personas ocupadas y no podemos leer documentos taaaaan largos, a veces necitamos ayudita analizando las cosas.")
+    st.subheader("🕷️ Los Spider-man somos personas ocupadas y no podemos leer documentos taaaaan largos... necesitamos ayudita analizando las cosas.")
 
-# Get API key from user
-ke = st.text_input('Ingresa tu Clave de OpenAI', type="password")
-if ke:
-    os.environ['OPENAI_API_KEY'] = ke
-else:
+# 🔑 API Key
+ke = st.text_input('🔐 Ingresa tu Clave de OpenAI', type="password")
+if not ke:
     st.warning("Por favor ingresa tu clave de API de OpenAI para continuar")
+else:
+    os.environ['OPENAI_API_KEY'] = ke
 
-# PDF uploader
-pdf = st.file_uploader("Carga el archivo PDF", type="pdf")
+# 📄 Cargar PDF
+pdf = st.file_uploader("📎 Carga el archivo PDF", type="pdf")
 
-# Process the PDF if uploaded
+# 🧠 Procesar PDF
 if pdf is not None and ke:
     try:
-        # Extract text from PDF
+        # Extraer texto
         pdf_reader = PdfReader(pdf)
         text = ""
         for page in pdf_reader.pages:
-            text += page.extract_text()
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text
         
-        st.info(f"Texto extraído: {len(text)} caracteres")
-        
-        # Split text into chunks
+        st.info(f"📃 Texto extraído: {len(text)} caracteres")
+
+        # Dividir texto en fragmentos
         text_splitter = CharacterTextSplitter(
             separator="\n",
             chunk_size=500,
@@ -67,40 +107,32 @@ if pdf is not None and ke:
             length_function=len
         )
         chunks = text_splitter.split_text(text)
-        st.success(f"Documento dividido en {len(chunks)} fragmentos")
-        
-        # Create embeddings and knowledge base
+        st.success(f"🧩 Documento dividido en {len(chunks)} fragmentos")
+
+        # Embeddings y base de conocimiento
         embeddings = OpenAIEmbeddings()
         knowledge_base = FAISS.from_texts(chunks, embeddings)
-        
-        # User question interface
-        st.subheader("Escribe qué quieres saber sobre el documento")
+
+        # 💬 Pregunta del usuario
+        st.subheader("🤔 ¿Qué quieres saber sobre el documento?")
         user_question = st.text_area(" ", placeholder="Escribe tu pregunta aquí...")
-        
-        # Process question when submitted
+
         if user_question:
             docs = knowledge_base.similarity_search(user_question)
-            
-            # Use a current model instead of deprecated text-davinci-003
-            # Options: "gpt-3.5-turbo-instruct" or "gpt-4-turbo-preview" depending on your API access
             llm = OpenAI(temperature=0, model_name="gpt-4o")
-            
-            # Load QA chain
             chain = load_qa_chain(llm, chain_type="stuff")
-            
-            # Run the chain
             response = chain.run(input_documents=docs, question=user_question)
-            
-            # Display the response
-            st.markdown("### Respuesta:")
+
+            st.markdown("### 🧠 Respuesta:")
             st.markdown(response)
-                
+
     except Exception as e:
-        st.error(f"Error al procesar el PDF: {str(e)}")
-        # Add detailed error for debugging
+        st.error(f"❌ Error al procesar el PDF: {str(e)}")
         import traceback
         st.error(traceback.format_exc())
+
 elif pdf is not None and not ke:
-    st.warning("Por favor ingresa tu clave de API de OpenAI para continuar")
+    st.warning("🔐 Necesitas ingresar tu clave de API de OpenAI para procesar el documento.")
 else:
-    st.info("Por favor carga un archivo PDF para comenzar")
+    st.info("📤 Carga un archivo PDF para comenzar.")
+
