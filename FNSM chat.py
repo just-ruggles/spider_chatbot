@@ -67,7 +67,7 @@ st.write(f"🔍 Versión de Python: {platform.python_version()}")
 
 # 🖼️ Cargar imagen
 try:
-    image = Image.open('Chat_pdf.png')
+    image = Image.open('spiderbot.webp')
     st.image(image, width=350)
 except Exception as e:
     st.warning(f"⚠️ No se pudo cargar la imagen: {e}")
